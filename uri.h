@@ -6,8 +6,6 @@ typedef enum
 	URI_STATE_DONE
 ,	URI_STATE_INIT
 
-	/* Transitional states */
-,	URI_STATE_SEEK_SOLIDUS
 
 	/* Top-level URI components */
 
@@ -16,19 +14,6 @@ typedef enum
 ,	URI_STATE HAS_PATH
 ,	URI_STATE_HAS_QUERY
 ,	URI_STATE_HAS_FRAGMENT
-
-	/* Authority components */
-
-,	URI_STATE_HAS_USER_INFO
-,	URI_STATE_HAS_HOST
-,	URI_STATE_HAS_PORT
-
-	/* Path components */
-
-,	URI_STATE_HAS_EMPTY_PATH
-,	URI_STATE_HAS_ABSPATH
-,	URI_STATE_HAS_RELPATH
-,	URI_STATE_HAS_SEGMENT		/** allow for visiting each path segment if desired */
 
 ,	URI_STATE_ERROR
 } uri_state_t;
