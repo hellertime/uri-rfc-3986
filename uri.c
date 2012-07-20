@@ -193,11 +193,9 @@ static const char* scout_path_absolute(const char *c)
 {
 	const char *p = NULL;
 
-	if (*c == '/') {
-		p = c++;
-		c = scout_path_rootless(c);
-		if (c != NULL) p = c;
-	}
+	p = c++;
+	c = scout_path_rootless(c);
+	if (c != NULL) p = c;
 
 	return p;
 }
@@ -285,6 +283,8 @@ exit:
 
 static uri_state_t proceed(const char ** const start, const char ** const end, uri_state_t in_state)
 {
+	int relative_ref = 0;
+
 	switch (in_state)
 	{
 	case URI_PARSE_DONE:
@@ -294,11 +294,21 @@ static uri_state_t proceed(const char ** const start, const char ** const end, u
 
 	case URI_PARSE_RESET:
 
-		*end = scout_scheme(*start);
-		if (*end == NULL || *(*end + 1) != ':') return URI_PARSE_ERROR;
+		if ((*end = scout_scheme(*start)) != NULL) {
+			if (*(*end + 1) == ':') {
+				(*end)++;
+				return URI_HAS_SCHEME;
+			}
+			else {
+				relative_ref = 1;
+				*end = *start;
+				goto proceed_relative_ref;
+			}
+		}
 		else {
-			(*end)++;
-			return URI_HAS_SCHEME;
+			relative_ref = 1;
+			*end = *start;
+			goto proceed_relative_ref;
 		}
 
 	case URI_HAS_SCHEME:
@@ -307,12 +317,14 @@ static uri_state_t proceed(const char ** const start, const char ** const end, u
 
 		*start = ++(*end);
 
+proceed_relative_ref:
+
 		switch (**start)
 		{
 		case '/':
 
 			(*start)++;
-			if (*(*start) == '/') {
+			if (**start == '/') {
 				(*start)++;
 				if ((*end = scout_userinfo(*start)) != NULL) {
 					(*end)++; 
@@ -343,8 +355,11 @@ static uri_state_t proceed(const char ** const start, const char ** const end, u
 			else return URI_HAS_PATH;
 
 		default:
-
-			if ((*end = scout_path_rootless(*start)) != NULL) {
+			if (relative_ref && ((*end = scout_path_noscheme(*start)) != NULL)) {
+				(*end)++;
+				return URI_HAS_PATH;
+			}
+			else if ((*end = scout_path_rootless(*start)) != NULL) {
 				(*end)++;
 				return URI_HAS_PATH;
 			}
@@ -484,7 +499,6 @@ static uri_state_t proceed(const char ** const start, const char ** const end, u
 uri_state_t uri_init(uri_t *uri, const char *uridata)
 {
 	uri->start = uri->end = uridata;
-	scout_query("");
 	scout_path_noscheme("");
 	return (uri->state = URI_PARSE_RESET);
 }
