@@ -9,16 +9,14 @@ static const char *uri_state_strings[] =
 #undef F
 };
 
-static const char *uri_examples[] =
-{
-	"http://a"
-,	"http://a:1000"
-,	"http://a/b"
-,	"http://a:1000/b"
-,	"http://a@:1000"
-,	"http://a@:1000/c"
-,	"http://a@b/c"
-,	"http://a@b:1000/c"
+static const struct {
+	const char *uri;
+	const unsigned int n_states;
+	const uri_state_t expected_states[16];
+} uri_tests[] = {
+	{ "http://example.org/absolute/URI/with/absolute/path/to/resource.txt", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "ftp://example.org/resource.txt", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "urn:issn:1535-3613", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
 };
 
 int main(void)
@@ -26,17 +24,23 @@ int main(void)
 	uri_t uri;
 	uri_state_t s;
 	
-	for (unsigned int i = 0; i < sizeof(uri_examples)/sizeof(uri_examples[0]); i++)
+	for (unsigned int i = 0; i < sizeof(uri_tests)/sizeof(uri_tests[0]); i++)
 	{
-		printf("URI Test #%04d: '%s'\n", i, uri_examples[i]);
-		for (s = uri_init(&uri, uri_examples[i]); s != URI_PARSE_DONE && s != URI_PARSE_ERROR; s = uri_proceed(&uri))
+		printf("[%04d] '%s': ", i, uri_tests[i].uri);
+
+		s = uri_init(&uri, uri_tests[i].uri);
+		for (unsigned int j = 0;  j < uri_tests[i].n_states && s != URI_PARSE_DONE; s = uri_proceed(&uri), j++)
 		{
-			printf(".... (%s): %.*s\n", uri_state_strings[s], uri.end - uri.start, uri.start);
+			if (s != uri_tests[i].expected_states[j])
+			{
+				printf("In state '%s', expected state '%s'\n", uri_state_strings[s], uri_state_strings[uri_tests[i].expected_states[j]]);
+				break;
+			}
 		}
 
-		if (s == URI_PARSE_ERROR)
+		if (s == URI_PARSE_DONE)
 		{
-			printf(".... (%s): %s\n", uri_state_strings[s], uri.end);
+			printf("OK\n");
 		}
 	}
 
