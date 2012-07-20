@@ -43,3 +43,9 @@ while (uri_okay(&uri))
 ## FUNCTIONS
 
 ## LIMITATIONS
+
+## LICENSE
+
+Licensed under the GPL v3, see COPYING for details.
+
+This is Free Software. No one asked me to create it.
