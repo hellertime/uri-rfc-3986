@@ -12,6 +12,7 @@
 	F(6,	HAS_PORT,	HAS_PORT)	\
 	F(7,	HAS_PATH,	HAS_PATH)	\
 	F(8,	HAS_QUERY,	HAS_QUERY)	\
+	F(9,	HAS_FRAGMENT,	HAS_FRAGMENT)	\
 
 typedef enum
 {

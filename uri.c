@@ -68,7 +68,7 @@ static const char* scout_query(const char *c)
 			p = c++;
 			break;
 		}
-	} while (p != NULL);
+	} while (c != NULL);
 
 	return p;
 }
@@ -428,11 +428,52 @@ static uri_state_t proceed(const char ** const start, const char ** const end, u
 				return URI_PARSE_DONE;
 			}
 
+		case '#':
+
+			(*start)++;
+			if ((*end = scout_fragment(*start)) != NULL) {
+				(*end)++;
+				return URI_HAS_FRAGMENT;
+			}
+			else {
+				*end = *start;
+				return URI_PARSE_DONE;
+			}
+
 		default:
 
 			*end = *start;
 			return URI_PARSE_DONE;
 		}
+
+	case URI_HAS_QUERY:
+
+		*start = *end;
+
+		switch (**start)
+		{
+		case '#':
+
+			(*start)++;
+			if ((*end = scout_fragment(*start)) != NULL) {
+				(*end)++;
+				return URI_HAS_FRAGMENT;
+			}
+			else {
+				*end = *start;
+				return URI_PARSE_DONE;
+			}
+
+		default:
+
+			*end = *start;
+			return URI_PARSE_DONE;
+		}
+
+	case URI_HAS_FRAGMENT:
+
+		*start = *end;
+		return URI_PARSE_DONE;
 
 	default:
 
