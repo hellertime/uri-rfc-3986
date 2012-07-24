@@ -497,11 +497,15 @@ proceed_relative_ref:
 	}
 }
 
-uri_state_t uri_init(uri_t *uri, const char *uridata)
+uri_state_t uri_init_with_state(uri_t *uri, const char *uridata, uri_state_t in_state)
 {
 	uri->start = uri->end = uridata;
-	scout_path_noscheme("");
-	return (uri->state = URI_PARSE_RESET);
+	return (uri->state = in_state);
+}
+
+uri_state_t uri_init(uri_t *uri, const char *uridata)
+{
+	return uri_init_with_state(uri, uridata, URI_PARSE_RESET);
 }
 
 uri_state_t uri_proceed(uri_t *uri)

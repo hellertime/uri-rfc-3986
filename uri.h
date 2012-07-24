@@ -30,6 +30,7 @@ typedef struct uri_t
 } uri_t;
 
 uri_state_t uri_init(uri_t *, const char *);
+uri_state_t uri_init_with_state(uri_t *, const char *, uri_state_t);
 uri_state_t uri_proceed(uri_t *);
 
 #endif
