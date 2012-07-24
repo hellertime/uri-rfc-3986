@@ -26,6 +26,7 @@ static const struct {
 ,	{ "#frag01", 4, { URI_PARSE_RESET, URI_HAS_EMPTY_PATH, URI_HAS_FRAGMENT, URI_PARSE_DONE } }
 ,	{ "", 3, { URI_PARSE_RESET, URI_HAS_EMPTY_PATH, URI_PARSE_DONE } }
 ,	{ "https://www.google.com/?q=URI+percent+encoding+!*'()%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D", 6, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "?q=URI+percent+encoding+!*'()%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D", 2, { URI_HAS_QUERY, URI_PARSE_DONE } }
 };
 
 int main(void)
@@ -35,7 +36,7 @@ int main(void)
 	for (unsigned int i = 0; i < sizeof(uri_tests)/sizeof(uri_tests[0]); i++)
 	{
 		printf("[%04d] '%s': ", i, uri_tests[i].uri);
-		uri_state_t s = uri_init(&uri, uri_tests[i].uri);
+		uri_state_t s = uri_init_with_state(&uri, uri_tests[i].uri, uri_tests[i].expected_states[0]);
 		for (unsigned int j = 0; j < uri_tests[i].n_states && s != URI_PARSE_DONE; s = uri_parse_next_component(&uri), j++)
 		{
 			if (s != uri_tests[i].expected_states[j])
