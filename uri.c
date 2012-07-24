@@ -509,6 +509,11 @@ uri_state_t uri_init(uri_t *uri, const char *uridata)
 
 }
 
+size_t uri_get_bytes_parsed(const uri_t *uri)
+{
+	return (uri->end - uri->data);
+}
+
 const char* uri_get_component_pointer(const uri_t *uri)
 {
 	return uri->start;
@@ -519,9 +524,9 @@ size_t uri_get_component_size(const uri_t *uri)
 	return (uri->end - uri->start);
 }
 
-size_t uri_get_bytes_parsed(const uri_t *uri)
+uri_state_t uri_get_state(const uri_t *uri)
 {
-	return (uri->end - uri->data);
+	return uri->state;
 }
 
 uri_state_t uri_parse_next_component(uri_t *uri)

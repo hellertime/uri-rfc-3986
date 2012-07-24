@@ -33,10 +33,10 @@ typedef struct uri_t
 uri_state_t uri_init(uri_t *, const char *);
 uri_state_t uri_init_with_state(uri_t *, const char *, uri_state_t);
 
+size_t uri_get_bytes_parsed(const uri_t *);
 const char* uri_get_component_pointer(const uri_t *);
 size_t uri_get_component_size(const uri_t *);
-
-size_t uri_get_bytes_parsed(const uri_t *);
+uri_state_t uri_get_state(const uri_t *);
 
 uri_state_t uri_parse_next_component(uri_t *);
 
