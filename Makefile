@@ -38,7 +38,7 @@ uri_optimize.o: uri.c uri.h Makefile
 	$(CC) $(CPPFLAGS_OPTIMIZE) $(CFLAGS_OPTIMIZE) -c uri.c -o $@
 
 clean:
-	rm -f *.o *.lst t/test_debug t/test_optimize
+	rm -f *.o *.lst t/test_debug t/test_optimize t/*.o
 
 .PHONY: clean
 
