@@ -25,6 +25,7 @@ static const struct {
 ,	{ "resource.txt", 3, { URI_PARSE_RESET, URI_HAS_PATH, URI_PARSE_DONE } }
 ,	{ "#frag01", 4, { URI_PARSE_RESET, URI_HAS_EMPTY_PATH, URI_HAS_FRAGMENT, URI_PARSE_DONE } }
 ,	{ "", 3, { URI_PARSE_RESET, URI_HAS_EMPTY_PATH, URI_PARSE_DONE } }
+,	{ "https://www.google.com/?q=URI+percent+encoding+!*'()%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D", 6, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
 };
 
 int main(void)
