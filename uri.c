@@ -348,23 +348,8 @@ proceed_relative_ref:
 					(*end)++; 
 					return URI_HAS_USERINFO;
 				}
-				else if ((*end = scout_host(*start)) != NULL) {
-					(*end)++; 
-					return URI_HAS_HOST;
-				}
-				else if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
-					(*start)++; 
-					(*end)++;
-					return URI_HAS_PORT;
-				}
-				else if ((*end = scout_path_abempty(*start)) != NULL) {
-					(*end)++;
-					return URI_HAS_PATH;
-				}
-				else {
-					*end = *start;
-					return URI_HAS_PATH;
-				}
+
+				goto proceed_host;
 			}
 			else if ((*end = scout_path_absolute(*start)) != NULL) {
 				(*end)++;
@@ -394,45 +379,34 @@ proceed_relative_ref:
 
 		*start = ++(*end);
 
+proceed_host:
+
 		if ((*end = scout_host(*start)) != NULL) {
 			(*end)++;
 			return URI_HAS_HOST;
 		}
-		else if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
-			(*start)++;
-			(*end)++;
-			return URI_HAS_PORT;
-		}
-		else if ((*end = scout_path_abempty(*start)) != NULL) {
-			(*end)++;
-			return URI_HAS_PATH;
-		}
-		else {
-			*end = *start;
-			return URI_HAS_PATH;
-		}
+
+		goto proceed_port;
 
 	case URI_HAS_HOST:
 
 		*start = *end;
+
+proceed_port:
 
 		if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
 			(*start)++;
 			(*end)++;
 			return URI_HAS_PORT;
 		}
-		else if ((*end = scout_path_abempty(*start)) != NULL) {
-			(*end)++;
-			return URI_HAS_PATH;
-		}
-		else {
-			*end = *start;
-			return URI_HAS_PATH;
-		}
+
+		goto proceed_path_abempty;
 
 	case URI_HAS_PORT:
 
 		*start = *end;
+
+proceed_path_abempty:
 
 		if ((*end = scout_path_abempty(*start)) != NULL) {
 			(*end)++;
@@ -464,15 +438,7 @@ proceed_relative_ref:
 
 		case '#':
 
-			(*start)++;
-			if ((*end = scout_fragment(*start)) != NULL) {
-				(*end)++;
-				return URI_HAS_FRAGMENT;
-			}
-			else {
-				*end = *start;
-				return URI_PARSE_DONE;
-			}
+			goto proceed_fragment;
 
 		default:
 
@@ -487,6 +453,8 @@ proceed_relative_ref:
 		switch (**start)
 		{
 		case '#':
+
+proceed_fragment:
 
 			(*start)++;
 			if ((*end = scout_fragment(*start)) != NULL) {
