@@ -24,6 +24,7 @@ typedef enum
 
 typedef struct uri_t
 {
+	const char *data;
 	const char *start;
 	const char *end;
 	uri_state_t state;
@@ -31,6 +32,12 @@ typedef struct uri_t
 
 uri_state_t uri_init(uri_t *, const char *);
 uri_state_t uri_init_with_state(uri_t *, const char *, uri_state_t);
-uri_state_t uri_proceed(uri_t *);
+
+const char* uri_get_component_pointer(const uri_t *);
+size_t uri_get_component_size(const uri_t *);
+
+size_t uri_get_bytes_parsed(const uri_t *);
+
+uri_state_t uri_parse_next_component(uri_t *);
 
 #endif

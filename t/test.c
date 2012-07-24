@@ -37,7 +37,7 @@ int main(void)
 		printf("[%04d] '%s': ", i, uri_tests[i].uri);
 
 		s = uri_init(&uri, uri_tests[i].uri);
-		for (unsigned int j = 0;  j < uri_tests[i].n_states && s != URI_PARSE_DONE; s = uri_proceed(&uri), j++)
+		for (unsigned int j = 0;  j < uri_tests[i].n_states && s != URI_PARSE_DONE; s = uri_parse_next_component(&uri), j++)
 		{
 			if (s != uri_tests[i].expected_states[j])
 			{

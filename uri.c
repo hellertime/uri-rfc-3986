@@ -1,6 +1,6 @@
-#include "uri.h"
-
 #include <stddef.h>
+
+#include "uri.h"
 
 #define LOWER(c) (unsigned char)(c | 0x20)
 #define IS_ALPHA(c) (LOWER(c) >= 'a' && LOWER(c) <= 'z')
@@ -499,16 +499,32 @@ proceed_relative_ref:
 
 uri_state_t uri_init_with_state(uri_t *uri, const char *uridata, uri_state_t in_state)
 {
-	uri->start = uri->end = uridata;
+	uri->start = uri->end = uri->data = uridata;
 	return (uri->state = in_state);
 }
 
 uri_state_t uri_init(uri_t *uri, const char *uridata)
 {
 	return uri_init_with_state(uri, uridata, URI_PARSE_RESET);
+
 }
 
-uri_state_t uri_proceed(uri_t *uri)
+const char* uri_get_component_pointer(const uri_t *uri)
+{
+	return uri->start;
+}
+
+size_t uri_get_component_size(const uri_t *uri)
+{
+	return (uri->end - uri->start);
+}
+
+size_t uri_get_bytes_parsed(const uri_t *uri)
+{
+	return (uri->end - uri->data);
+}
+
+uri_state_t uri_parse_next_component(uri_t *uri)
 {
 	return (uri->state = proceed(&uri->start, &uri->end, uri->state));
 }
