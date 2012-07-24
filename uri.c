@@ -143,7 +143,7 @@ static inline const char* scout_reg_name(const char *c)
 
 	do
 	{
-		if ((ascii_flags[(unsigned char)*c] & UNRESERVED) || (ascii_flags[(unsigned char)*c] & SUB_DELIM)) p = c++;
+		if (ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) p = c++;
 		else if ((c = scout_pct_encoded(c)) != NULL) p = c++;
 	} while (c != NULL);
 
@@ -241,7 +241,7 @@ static inline const char* scout_userinfo(const char *c)
 
 	do
 	{
-		if ((ascii_flags[(unsigned char)*c] & UNRESERVED) || (ascii_flags[(unsigned char)*c] & SUB_DELIM) || *c == ':') p = c++;
+		if ((ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) || *c == ':') p = c++;
 		else if ((c = scout_pct_encoded(c)) != NULL) p = c++;
 		else if (c != NULL && *c == '@') return p;
 		else return NULL;
@@ -282,7 +282,7 @@ static inline const char* scout_scheme(const char *c)
 		{
 		default:
 
-			if ((ascii_flags[(unsigned char)*c] & ALPHA) || (ascii_flags[(unsigned char)*c] & DIGIT)) p = c++;
+			if (ascii_flags[(unsigned char)*c] & (ALPHA | DIGIT)) p = c++;
 			else goto exit;
 			break;
 
