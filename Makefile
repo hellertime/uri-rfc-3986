@@ -1,5 +1,4 @@
 CC?=gcc
-AR?=ar
 
 CPPFLAGS += -I.
 CPPFLAGS_DEBUG = $(CPPFLAGS)
