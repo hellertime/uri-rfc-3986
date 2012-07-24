@@ -6,7 +6,7 @@ CPPFLAGS_OPTIMIZE = $(CPPFLAGS)
 
 CFLAGS += -std=c99 -Wall -Wextra -Werror -pedantic -Wstrict-aliasing=2 -Wno-missing-field-initializers
 CFLAGS_DEBUG = $(CFLAGS) -g -ggdb -O0
-CFLAGS_OPTIMIZE = $(CFLAGS) -Ofast
+CFLAGS_OPTIMIZE = $(CFLAGS) -Os
 CFLAGS_ASM_LISTING = -Wa,-a,-ad
 
 test: t/test_debug t/test_optimize
