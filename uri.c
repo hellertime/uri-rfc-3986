@@ -365,7 +365,7 @@ proceed_relative_ref:
 			}
 			else if ((*end = scout_path_empty(*start)) != NULL) {
 				(*end)++;
-				return URI_HAS_PATH;
+				return URI_HAS_EMPTY_PATH;
 			}
 			else return URI_PARSE_ERROR;
 		}
@@ -426,6 +426,7 @@ proceed_relative_ref:
 		}
 
 	case URI_HAS_PATH:
+	case URI_HAS_EMPTY_PATH:
 
 		*start = *end;
 
