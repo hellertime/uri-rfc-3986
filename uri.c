@@ -70,6 +70,20 @@ static const unsigned char ascii_flags[256] = {
 #undef U
 #undef P
 
+static inline const char* scout_pct_encoded(const char*) __pure;
+static inline const char* scout_pchar(const char*) __pure;
+static inline const char* scout_query(const char*) __pure;
+static inline const char* scout_any_segment(const char*, char) __pure;
+static inline const char* scout_reg_name(const char*) __pure;
+static inline const char* scout_path_abempty(const char*) __pure;
+static inline const char* scout_path_rootless(const char*) __pure;
+static inline const char* scout_path_noscheme(const char*) __pure;
+static inline const char* scout_path_absolute(const char*) __pure;
+static inline const char* scout_path_empty(const char*) __pure;
+static inline const char* scout_userinfo(const char*) __pure;
+static inline const char* scout_port(const char*) __pure;
+static inline const char* scout_scheme(const char*) __pure;
+
 /*
  * pct-encoded = "%" HEXDIG HEXDIG
  */

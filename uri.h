@@ -1,6 +1,12 @@
 #ifndef URI_H_INCLUDED
 #define URI_H_INCLUDED
 
+#ifdef __GNUC__
+#define __pure __attribute__((pure))
+#else
+#define __pure
+#endif
+
 #define URI_STATE_MAP(F)			\
 	F(0,	PARSE_DONE,	PARSE_DONE)	\
 	F(1,	PARSE_RESET,	PARSE_RESET)	\
