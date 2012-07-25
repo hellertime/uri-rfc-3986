@@ -2,72 +2,100 @@
 
 #include "uri.h"
 
-#define LOWER(c) (unsigned char)(c | 0x20)
-#define IS_ALPHA(c) (LOWER(c) >= 'a' && LOWER(c) <= 'z')
-#define IS_DIGIT(c) ((c) >= '0' && (c) <= '9')
-#define IS_HEX(c) (IS_DIGIT(c) || (LOWER(c) >= 'a' && LOWER(c) <= 'f'))
+#define ALPHA       0x01
+#define DIGIT       0x02
+#define HEXIDECIMAL 0x04
+#define SUB_DELIM   0x08
+#define GEN_DELIM   0x10
+#define UNRESERVED  0x20
+#define PCHAR       0x40
+#define SCHEME      0x80
 
-/* rfc 3986 definitions */
+#define A ALPHA
+#define D DIGIT
+#define H HEXIDECIMAL
+#define S SUB_DELIM
+#define G GEN_DELIM
+#define U UNRESERVED
+#define P PCHAR
+#define C SCHEME
 
-/*
+/* rfc 3986 definitions
+ *
  * sub-delims = "!" / "$" / "&" / "'" / "(" / ")"
  *            / "*" / "+" / "," / ";" / "="
- */
-#define IS_SUB_DELIM(c) (((c) >= '!' && (c) <= '=') && (((c) >= '&' && (c) <= ',') || (c) == '!' || (c) == '$' || (c) == ';' || (c) == '='))
-
-/*
  * gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@"
- */
-#define IS_GEN_DELIM(c) ((c) == ':' || (c) == '/' || (c) == '?' || c == '#' || c == '[' || c == ']' || c == '@')
-
-/*
- * reserved = gen-delims / sub-delims
- */
-#define IS_RESERVED(c) (IS_GEN_DELIM(c) || IS_SUB_DELIM(c))
-
-/*
  * unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+ * pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+ * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
  */
-#define IS_UNRESERVED(c) (IS_ALPHA(c) || IS_DIGIT(c) || (c) == '-' || (c) == '.' || (c) == '_' || (c) == '~')
+
+static const unsigned char ascii_flags[256] = {
+/* nul = 0x00, soh = 0x01, stx = 0x02, etx = 0x03, eot = 0x04, enq = 0x05, ack = 0x06, bel = 0x07 */
+   0,          0,          0,          0,          0,          0,          0,          0,
+/* bs = 0x08,  ht = 0x09,  lf = 0x0a,  vt = 0x0b,  ff = 0x0c,  cr = 0x0d,  so = 0x0e,  si = 0x0f */ 
+   0,          0,          0,          0,          0,          0,          0,          0,
+/* dle = 0x10, dc1 = 0x11, dc2 = 0x12, dc3 = 0x13, dc4 = 0x14, nak = 0x15, syn = 0x16, etb = 0x17 */
+   0,          0,          0,          0,          0,          0,          0,          0,
+/* can = 0x18, em = 0x19,  sub = 0x1a, esc = 0x1b, fs = 0x1c,  gs = 0x1d,  rs = 0x1e,  us = 0x1f  */
+   0,          0,          0,          0,          0,          0,          0,          0,
+/* spc = 0x20, '!' = 0x21, '"' = 0x22, '#' = 0x23, '$' = 0x24, '%' = 0x25, '&' = 0x26, '\'' = 0x27*/
+   0,          P|S,        0,          G,          P|S,        0,          P|S,        P|S,
+/* '(' = 0x28, ')' = 0x29, '*' = 0x2a, '+' = 0x2b, ',' = 0x2c, '-' = 0x2d, '.' = 0x2e, '/' = 0x2f */
+   P|S,        P|S,        P|S,        C|P|S,      P|S,        C|P|U,      C|P|U,      G,
+/* '0' = 0x30, '1' = 0x31, '2' = 0x32, '3' = 0x33, '4' = 0x34, '5' = 0x35, '6' = 0x36, '7' = 0x37 */
+   C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,
+/* '8' = 0x38, '9' = 0x39, ':' = 0x3a, ';' = 0x3b, '<' = 0x3c, '=' = 0x3d, '>' = 0x3e, '?' = 0x3f */
+   C|P|U|H|D,  C|P|U|H|D,  P|G,        P|S,        0,          P|S,        0,          G,
+/* '@' = 0x40, 'A' = 0x41, 'B' = 0x42, 'C' = 0x43, 'D' = 0x44, 'E' = 0x45, 'F' = 0x46, 'G' = 0x47 */
+   P|G,        C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|A,
+/* 'H' = 0x48, 'I' = 0x49, 'J' = 0x4a, 'K' = 0x4b, 'L' = 0x4c, 'M' = 0x4d, 'N' = 0x4e, 'O' = 0x4f */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+/* 'P' = 0x50, 'Q' = 0x51, 'R' = 0x52, 'S' = 0x53, 'T' = 0x54, 'U' = 0x55, 'V' = 0x56, 'W' = 0x57 */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+/* 'X' = 0x58, 'Y' = 0x59, 'Z' = 0x5a, '[' = 0x5b, '\\' = 0x5c,']' = 0x5d, '^' = 0x5e, '_' = 0x5f */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    G,          0,          G,          0,          P|U,
+/* '`' = 0x60, 'a' = 0x61, 'b' = 0x62, 'c' = 0x63, 'd' = 0x64, 'e' = 0x65, 'f' = 0x66, 'g' = 0x67 */
+   0,          C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+/* 'h' = 0x68, 'i' = 0x69, 'j' = 0x6a, 'k' = 0x6b, 'l' = 0x6c, 'm' = 0x6d, 'n' = 0x6e, 'o' = 0x6f */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+/* 'p' = 0x70, 'q' = 0x71, 'r' = 0x72, 's' = 0x73, 't' = 0x74, 'u' = 0x75, 'v' = 0x76, 'w' = 0x77 */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+/* 'x' = 0x78, 'y' = 0x79, 'z' = 0x7a, '{' = 0x7b, '|' = 0x7c, '}' = 0x7d, '~' = 0x7e, del = 0x7f */
+   C|P|U|A,    C|P|U|A,    C|P|U|A,    0,          0,          0,          P|U,        0};
+
+#undef A
+#undef D
+#undef H
+#undef S
+#undef G
+#undef U
+#undef P
+#undef C
 
 /*
  * pct-encoded = "%" HEXDIG HEXDIG
  */
-static const char* scout_pct_encoded(const char *c)
+static inline const char* scout_pct_encoded(const char *c)
 {
-	return (*c == '%' && IS_HEX(*(c + 1)) && IS_HEX(*(c + 2))) ? (c + 2) : NULL;
+	return (*c == '%' && (ascii_flags[(unsigned char)*(c + 1)] & HEXIDECIMAL) && (ascii_flags[(unsigned char)*(c + 2)] & HEXIDECIMAL)) ? (c + 2) : NULL;
 }
 
-/*
- * pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
- */
-static const char* scout_pchar(const char *c)
+static inline const char* scout_pchar(const char *c)
 {
-	return (IS_UNRESERVED(*c) || IS_SUB_DELIM(*c) || *c == ':' || *c == '@') ? c : scout_pct_encoded(c);
+	return (ascii_flags[(unsigned char)*c] & PCHAR) ? c : scout_pct_encoded(c);
 }
 
 /*
  * query = *( pchar / "/" / "?" )
  */
-static const char* scout_query(const char *c)
+static inline const char* scout_query(const char *c)
 {
 	const char *p = NULL;
 	do
 	{
-		switch (*c)
-		{
-		default:
-
-			c = scout_pchar(c);
-			if (c != NULL) p = c++;
-			break;
-
-		case '/':
-		case '?':
-
-			p = c++;
-			break;
-		}
+		if (*c == '/' || *c == '?') p = c++;
+		else if ((c = scout_pchar(c)) != NULL) p = c++; 
 	} while (c != NULL);
 
 	return p;
@@ -83,7 +111,7 @@ static const char* scout_query(const char *c)
  * segment-nz = 1*pchar
  * segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
  */
-static const char* scout_any_segment(const char *c, char exclude)
+static inline const char* scout_any_segment(const char *c, char exclude)
 {
 	const char *p = NULL;
 
@@ -109,18 +137,14 @@ static const char* scout_any_segment(const char *c, char exclude)
 /*
  * reg-name = *( unreserved / pct-encoded / sub-delims )
  */
-static const char* scout_reg_name(const char *c)
+static inline const char* scout_reg_name(const char *c)
 {
 	const char *p = NULL;
 
 	do
 	{
-		if (IS_UNRESERVED(*c) || IS_SUB_DELIM(*c)) p = c++;
-		else if (scout_pct_encoded(c) != NULL) {
-			p = c + 2;
-			c += 3;
-		}
-		else c = NULL;
+		if (ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) p = c++;
+		else if ((c = scout_pct_encoded(c)) != NULL) p = c++;
 	} while (c != NULL);
 
 	return p;
@@ -129,7 +153,7 @@ static const char* scout_reg_name(const char *c)
 /*
  * path-abempty = *( "/" segment )
  */
-static const char* scout_path_abempty(const char *c)
+static inline const char* scout_path_abempty(const char *c)
 {
 	const char *p = NULL;
 
@@ -147,7 +171,7 @@ static const char* scout_path_abempty(const char *c)
 /*
  * path-rootless = segment-nz *( "/" segment )
  */
-static const char* scout_path_rootless(const char *c)
+static inline const char* scout_path_rootless(const char *c)
 {
 	const char *p = NULL;
 
@@ -168,7 +192,7 @@ static const char* scout_path_rootless(const char *c)
 /*
  * path-noscheme = segment-nz-nc *( "/" segment )
  */
-static const char* scout_path_noscheme(const char *c)
+static inline const char* scout_path_noscheme(const char *c)
 {
 	const char *p = NULL;
 
@@ -189,7 +213,7 @@ static const char* scout_path_noscheme(const char *c)
 /*
  * path-absolute = "/" [ segment-nz *( "/" segment ) ]
  */
-static const char* scout_path_absolute(const char *c)
+static inline const char* scout_path_absolute(const char *c)
 {
 	const char *p = NULL;
 
@@ -203,7 +227,7 @@ static const char* scout_path_absolute(const char *c)
 /*
  * path-empty = 0<pchar>
  */
-static const char* scout_path_empty(const char *c)
+static inline const char* scout_path_empty(const char *c)
 {
 	return (scout_pchar(c) == NULL) ? c : NULL;
 }
@@ -211,17 +235,14 @@ static const char* scout_path_empty(const char *c)
 /*
  * userinfo = *( unreserved / pct-encoded / sub-delims / ":" )
  */
-static const char* scout_userinfo(const char *c)
+static inline const char* scout_userinfo(const char *c)
 {
 	const char *p = c;
 
 	do
 	{
-		if (IS_UNRESERVED(*c) || IS_SUB_DELIM(*c) || *c == ':') p = c++;
-		else if (scout_pct_encoded(c) != NULL) {
-			p = c + 2;
-			c += 3;
-		}
+		if ((ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) || *c == ':') p = c++;
+		else if ((c = scout_pct_encoded(c)) != NULL) p = c++;
 		else if (c != NULL && *c == '@') return p;
 		else return NULL;
 	} while (c != NULL);
@@ -239,11 +260,11 @@ static const char* scout_userinfo(const char *c)
 /*
  * port = *DIGIT
  */
-static const char* scout_port(const char *c)
+static inline const char* scout_port(const char *c)
 {
 	const char *p = NULL;
 
-	while (IS_DIGIT(*c))
+	while (ascii_flags[(unsigned char)*c] & DIGIT)
 	{
 		p = c++;
 	}
@@ -251,12 +272,9 @@ static const char* scout_port(const char *c)
 	return p;
 }
 
-/*
- * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
- */
-static const char* scout_scheme(const char *c)
+static inline const char* scout_scheme(const char *c)
 {
-	const char *p = (IS_ALPHA(*c) ? c++ : NULL);
+	const char *p = ((ascii_flags[(unsigned char)*c] & ALPHA) ? c++ : NULL);
 
 	while (p != NULL)
 	{
@@ -264,7 +282,7 @@ static const char* scout_scheme(const char *c)
 		{
 		default:
 
-			if (IS_ALPHA(*c) || IS_DIGIT(*c)) p = c++;
+			if (ascii_flags[(unsigned char)*c] & (ALPHA | DIGIT)) p = c++;
 			else goto exit;
 			break;
 
@@ -330,23 +348,8 @@ proceed_relative_ref:
 					(*end)++; 
 					return URI_HAS_USERINFO;
 				}
-				else if ((*end = scout_host(*start)) != NULL) {
-					(*end)++; 
-					return URI_HAS_HOST;
-				}
-				else if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
-					(*start)++; 
-					(*end)++;
-					return URI_HAS_PORT;
-				}
-				else if ((*end = scout_path_abempty(*start)) != NULL) {
-					(*end)++;
-					return URI_HAS_PATH;
-				}
-				else {
-					*end = *start;
-					return URI_HAS_PATH;
-				}
+
+				goto proceed_host;
 			}
 			else if ((*end = scout_path_absolute(*start)) != NULL) {
 				(*end)++;
@@ -376,45 +379,34 @@ proceed_relative_ref:
 
 		*start = ++(*end);
 
+proceed_host:
+
 		if ((*end = scout_host(*start)) != NULL) {
 			(*end)++;
 			return URI_HAS_HOST;
 		}
-		else if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
-			(*start)++;
-			(*end)++;
-			return URI_HAS_PORT;
-		}
-		else if ((*end = scout_path_abempty(*start)) != NULL) {
-			(*end)++;
-			return URI_HAS_PATH;
-		}
-		else {
-			*end = *start;
-			return URI_HAS_PATH;
-		}
+
+		goto proceed_port;
 
 	case URI_HAS_HOST:
 
 		*start = *end;
+
+proceed_port:
 
 		if ((**start == ':') && ((*end = scout_port(*start + 1)) != NULL)) {
 			(*start)++;
 			(*end)++;
 			return URI_HAS_PORT;
 		}
-		else if ((*end = scout_path_abempty(*start)) != NULL) {
-			(*end)++;
-			return URI_HAS_PATH;
-		}
-		else {
-			*end = *start;
-			return URI_HAS_PATH;
-		}
+
+		goto proceed_path_abempty;
 
 	case URI_HAS_PORT:
 
 		*start = *end;
+
+proceed_path_abempty:
 
 		if ((*end = scout_path_abempty(*start)) != NULL) {
 			(*end)++;
@@ -446,15 +438,7 @@ proceed_relative_ref:
 
 		case '#':
 
-			(*start)++;
-			if ((*end = scout_fragment(*start)) != NULL) {
-				(*end)++;
-				return URI_HAS_FRAGMENT;
-			}
-			else {
-				*end = *start;
-				return URI_PARSE_DONE;
-			}
+			goto proceed_fragment;
 
 		default:
 
@@ -469,6 +453,8 @@ proceed_relative_ref:
 		switch (**start)
 		{
 		case '#':
+
+proceed_fragment:
 
 			(*start)++;
 			if ((*end = scout_fragment(*start)) != NULL) {
