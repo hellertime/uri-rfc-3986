@@ -27,6 +27,18 @@ static const struct {
 ,	{ "", 3, { URI_PARSE_RESET, URI_HAS_EMPTY_PATH, URI_PARSE_DONE } }
 ,	{ "https://www.google.com/?q=URI+percent+encoding+!*'()%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D", 6, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
 ,	{ "?q=URI+percent+encoding+!*'()%3B%3A%40%26%3D%2B%24%2C%2F%3F%23%5B%5D", 2, { URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "sip:biloxi.com;method=REGISTER;transport=tcp?to=sip:bob%40biloxi.com", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "mailto:?to=joe@xyz.com&amp;cc=bob@xyz.com&amp;body=hello", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_EMPTY_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "file:///c:/WINDOWS/clock.avi", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "ftp://me@you.com/my%20test.asp?name=st%C3%A5le&car=saab", 7, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_USERINFO, URI_HAS_HOST, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "tag:example.com,2004:fred:", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "qemu+unix:///system?socket=/opt/libvirt/run/libvirt/libvirt-sock", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "test+tcp://node.example.com:5000/default", 6, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PORT, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "news://server.example/ab.cd@example.com", 5, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_HOST, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "geo:66,30;u=6.500;FOo=this%2dthat", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
+,	{ "magnet:?xt.1=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C&xt.2=urn:sha1:TXGCZQTH26NL6OUQAJJPFALHG2LTGBC7", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_EMPTY_PATH, URI_HAS_QUERY, URI_PARSE_DONE } }
+,	{ "tel:863-1234;phone-context=+1-914-555", 4, { URI_PARSE_RESET, URI_HAS_SCHEME, URI_HAS_PATH, URI_PARSE_DONE } }
 };
 
 int main(void)
