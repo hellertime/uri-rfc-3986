@@ -253,7 +253,10 @@ static inline const char* scout_userinfo(const char *c)
 	do
 	{
 		if ((ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) || *c == ':') p = c++;
-		else if ((c = scout_pct_encoded(c)) != NULL) p = c++;
+		else if (scout_pct_encoded(c) != NULL) {
+			p = c + 2;
+			c += 3;
+		}
 		else if (c != NULL && *c == '@') return p;
 		else return NULL;
 	} while (c != NULL);
