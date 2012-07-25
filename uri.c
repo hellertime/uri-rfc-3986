@@ -9,7 +9,6 @@
 #define GEN_DELIM   0x10
 #define UNRESERVED  0x20
 #define PCHAR       0x40
-#define SCHEME      0x80
 
 #define A ALPHA
 #define D DIGIT
@@ -18,7 +17,6 @@
 #define G GEN_DELIM
 #define U UNRESERVED
 #define P PCHAR
-#define C SCHEME
 
 /* rfc 3986 definitions
  *
@@ -42,27 +40,27 @@ static const unsigned char ascii_flags[256] = {
 /* spc = 0x20, '!' = 0x21, '"' = 0x22, '#' = 0x23, '$' = 0x24, '%' = 0x25, '&' = 0x26, '\'' = 0x27*/
    0,          P|S,        0,          G,          P|S,        0,          P|S,        P|S,
 /* '(' = 0x28, ')' = 0x29, '*' = 0x2a, '+' = 0x2b, ',' = 0x2c, '-' = 0x2d, '.' = 0x2e, '/' = 0x2f */
-   P|S,        P|S,        P|S,        C|P|S,      P|S,        C|P|U,      C|P|U,      G,
+   P|S,        P|S,        P|S,        P|S,      P|S,        P|U,      P|U,      G,
 /* '0' = 0x30, '1' = 0x31, '2' = 0x32, '3' = 0x33, '4' = 0x34, '5' = 0x35, '6' = 0x36, '7' = 0x37 */
-   C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,  C|P|U|H|D,
+   P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,
 /* '8' = 0x38, '9' = 0x39, ':' = 0x3a, ';' = 0x3b, '<' = 0x3c, '=' = 0x3d, '>' = 0x3e, '?' = 0x3f */
-   C|P|U|H|D,  C|P|U|H|D,  P|G,        P|S,        0,          P|S,        0,          G,
+   P|U|H|D,    P|U|H|D,    P|G,        P|S,        0,          P|S,        0,          G,
 /* '@' = 0x40, 'A' = 0x41, 'B' = 0x42, 'C' = 0x43, 'D' = 0x44, 'E' = 0x45, 'F' = 0x46, 'G' = 0x47 */
-   P|G,        C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|H|A,  C|P|U|A,
+   P|G,        P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|A,
 /* 'H' = 0x48, 'I' = 0x49, 'J' = 0x4a, 'K' = 0x4b, 'L' = 0x4c, 'M' = 0x4d, 'N' = 0x4e, 'O' = 0x4f */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+   P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'P' = 0x50, 'Q' = 0x51, 'R' = 0x52, 'S' = 0x53, 'T' = 0x54, 'U' = 0x55, 'V' = 0x56, 'W' = 0x57 */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+   P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'X' = 0x58, 'Y' = 0x59, 'Z' = 0x5a, '[' = 0x5b, '\\' = 0x5c,']' = 0x5d, '^' = 0x5e, '_' = 0x5f */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    G,          0,          G,          0,          P|U,
+   P|U|A,      P|U|A,      P|U|A,      G,          0,          G,          0,          P|U,
 /* '`' = 0x60, 'a' = 0x61, 'b' = 0x62, 'c' = 0x63, 'd' = 0x64, 'e' = 0x65, 'f' = 0x66, 'g' = 0x67 */
-   0,          C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+   0,          P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'h' = 0x68, 'i' = 0x69, 'j' = 0x6a, 'k' = 0x6b, 'l' = 0x6c, 'm' = 0x6d, 'n' = 0x6e, 'o' = 0x6f */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+   P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'p' = 0x70, 'q' = 0x71, 'r' = 0x72, 's' = 0x73, 't' = 0x74, 'u' = 0x75, 'v' = 0x76, 'w' = 0x77 */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,    C|P|U|A,
+   P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'x' = 0x78, 'y' = 0x79, 'z' = 0x7a, '{' = 0x7b, '|' = 0x7c, '}' = 0x7d, '~' = 0x7e, del = 0x7f */
-   C|P|U|A,    C|P|U|A,    C|P|U|A,    0,          0,          0,          P|U,        0};
+   P|U|A,      P|U|A,      P|U|A,      0,          0,          0,          P|U,        0};
 
 #undef A
 #undef D
@@ -71,7 +69,6 @@ static const unsigned char ascii_flags[256] = {
 #undef G
 #undef U
 #undef P
-#undef C
 
 /*
  * pct-encoded = "%" HEXDIG HEXDIG
