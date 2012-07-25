@@ -133,11 +133,11 @@ static inline const char* scout_ipv4address(const char *c)
 {
 	if ((c = scout_dec_octet(c)) == NULL) return NULL;
 	if (*(++c) != '.') return NULL;
-	if ((c = scout_dec_octet(c)) == NULL) return NULL;
+	if ((c = scout_dec_octet(c + 1)) == NULL) return NULL;
 	if (*(++c) != '.') return NULL;
-	if ((c = scout_dec_octet(c)) == NULL) return NULL;
+	if ((c = scout_dec_octet(c + 1)) == NULL) return NULL;
 	if (*(++c) != '.') return NULL;
-	return scout_dec_octet(c);
+	return scout_dec_octet(c + 1);
 }
 
 /*
@@ -216,9 +216,8 @@ static inline const char* scout_ipv6address(const char *c)
 	int left_hand_count = 0;
 
 	if ((p = scout_ipv6address_rh6(c)) != NULL) return p;
-	else if (*c == ':' && *(c + 1) == ':') return scout_ipv6address_rh5(c + 2);
 	else {
-
+		p = c;
 		c = scout_h16(c);
 		while (c != NULL)
 		{
@@ -227,10 +226,11 @@ static inline const char* scout_ipv6address(const char *c)
 			if (*c == ':') c = scout_h16(c + 1);
 		}
 
-		p += 3;
+		p += (left_hand_count == 0) ? 2 : 3;
 
 		switch (left_hand_count)
 		{
+		case 0: if ((c = scout_ipv6address_rh5(p)) != NULL) return c;
 		case 1: if ((c = scout_ipv6address_rh4(p)) != NULL) return c;
 		case 2: if ((c = scout_ipv6address_rh3(p)) != NULL) return c;
 		case 3: if ((c = scout_ipv6address_rh2(p)) != NULL) return c;
