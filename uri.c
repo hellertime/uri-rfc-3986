@@ -10,13 +10,13 @@
 #define UNRESERVED  0x20
 #define PCHAR       0x40
 
-#define A ALPHA
-#define D DIGIT
-#define H HEXIDECIMAL
-#define S SUB_DELIM
-#define G GEN_DELIM
-#define U UNRESERVED
-#define P PCHAR
+#define A (unsigned char)ALPHA
+#define D (unsigned char)DIGIT
+#define H (unsigned char)HEXIDECIMAL
+#define S (unsigned char)SUB_DELIM
+#define G (unsigned char)GEN_DELIM
+#define U (unsigned char)UNRESERVED
+#define P (unsigned char)PCHAR
 
 /* rfc 3986 definitions
  *
@@ -492,9 +492,14 @@ static inline const char* scout_port(const char *c)
  */
 static inline const char* scout_scheme(const char *c)
 {
-	const char *p = ((ascii_flags[(unsigned char)*c] & ALPHA) ? c++ : NULL);
+	const char *p;
 
-	while (p != NULL)
+	if (ascii_flags[(unsigned char)*c] & ALPHA)
+		p = c++;
+	else
+		return NULL;
+
+	while (c != NULL)
 	{
 		switch (*c)
 		{
