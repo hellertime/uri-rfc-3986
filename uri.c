@@ -10,13 +10,13 @@
 #define UNRESERVED  0x20
 #define PCHAR       0x40
 
-#define A ALPHA
-#define D DIGIT
-#define H HEXIDECIMAL
-#define S SUB_DELIM
-#define G GEN_DELIM
-#define U UNRESERVED
-#define P PCHAR
+#define A (unsigned char)ALPHA
+#define D (unsigned char)DIGIT
+#define H (unsigned char)HEXIDECIMAL
+#define S (unsigned char)SUB_DELIM
+#define G (unsigned char)GEN_DELIM
+#define U (unsigned char)UNRESERVED
+#define P (unsigned char)PCHAR
 
 /* rfc 3986 definitions
  *
@@ -25,22 +25,21 @@
  * gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@"
  * unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
  * pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
- * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
  */
 
 static const unsigned char ascii_flags[256] = {
 /* nul = 0x00, soh = 0x01, stx = 0x02, etx = 0x03, eot = 0x04, enq = 0x05, ack = 0x06, bel = 0x07 */
    0,          0,          0,          0,          0,          0,          0,          0,
-/* bs = 0x08,  ht = 0x09,  lf = 0x0a,  vt = 0x0b,  ff = 0x0c,  cr = 0x0d,  so = 0x0e,  si = 0x0f */ 
+/* bs  = 0x08, ht  = 0x09, lf  = 0x0a, vt  = 0x0b, ff  = 0x0c, cr  = 0x0d, so  = 0x0e, si = 0x0f  */ 
    0,          0,          0,          0,          0,          0,          0,          0,
 /* dle = 0x10, dc1 = 0x11, dc2 = 0x12, dc3 = 0x13, dc4 = 0x14, nak = 0x15, syn = 0x16, etb = 0x17 */
    0,          0,          0,          0,          0,          0,          0,          0,
-/* can = 0x18, em = 0x19,  sub = 0x1a, esc = 0x1b, fs = 0x1c,  gs = 0x1d,  rs = 0x1e,  us = 0x1f  */
+/* can = 0x18, em  = 0x19, sub = 0x1a, esc = 0x1b, fs  = 0x1c, gs = 0x1d,  rs  = 0x1e, us  = 0x1f */
    0,          0,          0,          0,          0,          0,          0,          0,
-/* spc = 0x20, '!' = 0x21, '"' = 0x22, '#' = 0x23, '$' = 0x24, '%' = 0x25, '&' = 0x26, '\'' = 0x27*/
+/* spc = 0x20, '!' = 0x21, '"' = 0x22, '#' = 0x23, '$' = 0x24, '%' = 0x25, '&' = 0x26, '\''= 0x27 */
    0,          P|S,        0,          G,          P|S,        0,          P|S,        P|S,
 /* '(' = 0x28, ')' = 0x29, '*' = 0x2a, '+' = 0x2b, ',' = 0x2c, '-' = 0x2d, '.' = 0x2e, '/' = 0x2f */
-   P|S,        P|S,        P|S,        P|S,      P|S,        P|U,      P|U,      G,
+   P|S,        P|S,        P|S,        P|S,        P|S,        P|U,        P|U,        G,
 /* '0' = 0x30, '1' = 0x31, '2' = 0x32, '3' = 0x33, '4' = 0x34, '5' = 0x35, '6' = 0x36, '7' = 0x37 */
    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,    P|U|H|D,
 /* '8' = 0x38, '9' = 0x39, ':' = 0x3a, ';' = 0x3b, '<' = 0x3c, '=' = 0x3d, '>' = 0x3e, '?' = 0x3f */
@@ -51,16 +50,16 @@ static const unsigned char ascii_flags[256] = {
    P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'P' = 0x50, 'Q' = 0x51, 'R' = 0x52, 'S' = 0x53, 'T' = 0x54, 'U' = 0x55, 'V' = 0x56, 'W' = 0x57 */
    P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
-/* 'X' = 0x58, 'Y' = 0x59, 'Z' = 0x5a, '[' = 0x5b, '\\' = 0x5c,']' = 0x5d, '^' = 0x5e, '_' = 0x5f */
+/* 'X' = 0x58, 'Y' = 0x59, 'Z' = 0x5a, '[' = 0x5b, '\\'= 0x5c, ']' = 0x5d, '^' = 0x5e, '_' = 0x5f */
    P|U|A,      P|U|A,      P|U|A,      G,          0,          G,          0,          P|U,
 /* '`' = 0x60, 'a' = 0x61, 'b' = 0x62, 'c' = 0x63, 'd' = 0x64, 'e' = 0x65, 'f' = 0x66, 'g' = 0x67 */
-   0,          P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
+   0,          P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|H|A,    P|U|A,
 /* 'h' = 0x68, 'i' = 0x69, 'j' = 0x6a, 'k' = 0x6b, 'l' = 0x6c, 'm' = 0x6d, 'n' = 0x6e, 'o' = 0x6f */
    P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'p' = 0x70, 'q' = 0x71, 'r' = 0x72, 's' = 0x73, 't' = 0x74, 'u' = 0x75, 'v' = 0x76, 'w' = 0x77 */
    P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,      P|U|A,
 /* 'x' = 0x78, 'y' = 0x79, 'z' = 0x7a, '{' = 0x7b, '|' = 0x7c, '}' = 0x7d, '~' = 0x7e, del = 0x7f */
-   P|U|A,      P|U|A,      P|U|A,      0,          0,          0,          P|U,        0};
+   P|U|A,      P|U|A,      P|U|A,      0,          0,          0,          P|U,        0          };
 
 #undef A
 #undef D
@@ -70,11 +69,25 @@ static const unsigned char ascii_flags[256] = {
 #undef U
 #undef P
 
+static inline const char* scout_dec_octet(const char*) __pure;
+static inline const char* scout_ipv4address(const char *c) __pure;
+static inline const char* scout_h16(const char *c) __pure;
+static inline const char* scout_ls32(const char *c) __pure;
+static inline const char* scout_ipv6address_rh1(const char *c) __pure;
+static inline const char* scout_ipv6address_rh2(const char *c) __pure;
+static inline const char* scout_ipv6address_rh3(const char *c) __pure;
+static inline const char* scout_ipv6address_rh4(const char *c) __pure;
+static inline const char* scout_ipv6address_rh5(const char *c) __pure;
+static inline const char* scout_ipv6address_rh6(const char *c) __pure;
+static inline const char* scout_ipv6address(const char *c) __pure;
+static inline const char* scout_ipvfuture(const char *c) __pure;
+static inline const char* scout_ip_literal(const char *c) __pure;
 static inline const char* scout_pct_encoded(const char*) __pure;
 static inline const char* scout_pchar(const char*) __pure;
 static inline const char* scout_query(const char*) __pure;
 static inline const char* scout_any_segment(const char*, char) __pure;
 static inline const char* scout_reg_name(const char*) __pure;
+static inline const char* scout_host(const char *c) __pure;
 static inline const char* scout_path_abempty(const char*) __pure;
 static inline const char* scout_path_rootless(const char*) __pure;
 static inline const char* scout_path_noscheme(const char*) __pure;
@@ -83,6 +96,194 @@ static inline const char* scout_path_empty(const char*) __pure;
 static inline const char* scout_userinfo(const char*) __pure;
 static inline const char* scout_port(const char*) __pure;
 static inline const char* scout_scheme(const char*) __pure;
+
+/*
+ * dec-octet = DIGIT             ;   0-9
+ *           / "1"-"9" DIGIT     ;  10-99
+ *           / "1" 2DIGIT        ; 100-199
+ *           / "2" "0"-"4" DIGIT ; 200-249
+ *           / "25" "0"-"5"      ; 250-255
+ */
+static inline const char* scout_dec_octet(const char *c)
+{
+	switch (*c)
+	{
+	case '1':
+
+		if ((ascii_flags[(unsigned char)*(c + 1)] & DIGIT) && (ascii_flags[(unsigned char)*(c + 2)] & DIGIT)) return c + 2;
+		else if (ascii_flags[(unsigned char)*(c + 1)] & DIGIT) return c + 1;
+		else return NULL;
+
+	case '2':
+
+		if ((*(c + 1) - '0') <= ('5' - '0')) {
+			if ((*(c + 1) == '5') && ((*(c + 2) - '0') <= ('5' - '0'))) return c + 2;
+			else if (ascii_flags[(unsigned char)*(c + 2)] & DIGIT) return c + 2;
+			else return NULL; 
+		}
+		else return NULL;
+
+	default:
+
+		if (ascii_flags[(unsigned char)*c] & DIGIT) {
+			if (((*c - '3') <= ('9' - '3')) && (ascii_flags[(unsigned char)*(c + 1)] & DIGIT)) return c + 1;
+			else return c;
+		}
+		else return NULL;
+	}
+}
+
+/*
+ * IPv4address = dec-octet '.' dec-octet '.' dec-octet '.' dec-octet
+ */
+static inline const char* scout_ipv4address(const char *c)
+{
+	if ((c = scout_dec_octet(c)) == NULL) return NULL;
+	if (*(++c) != '.') return NULL;
+	if ((c = scout_dec_octet(c + 1)) == NULL) return NULL;
+	if (*(++c) != '.') return NULL;
+	if ((c = scout_dec_octet(c + 1)) == NULL) return NULL;
+	if (*(++c) != '.') return NULL;
+	return scout_dec_octet(c + 1);
+}
+
+/*
+ * h16 = 1*4HEXDIG
+ */
+static inline const char* scout_h16(const char *c)
+{
+	const char *p = NULL, *c0 = c;
+
+	while (ascii_flags[(unsigned char)*c] & HEXIDECIMAL)
+		p = c++;
+
+	return (p == NULL || p - c0 < 4) ? p : NULL; 
+}
+
+/*
+ * ls32 = ( h16 ":" h16 ) / IPv4address
+ */
+static inline const char* scout_ls32(const char *c)
+{
+	const char *p = scout_ipv4address(c);
+
+	if (p == NULL) {
+		p = scout_h16(c);
+		if ( p != NULL) {
+			c = p + 1;
+			if (*c == ':') return scout_h16(c + 1);
+			else return NULL;
+		}
+		else return NULL;
+	}
+
+	return p;
+}
+
+
+/*
+ * h16 ":" ls32
+ */
+static inline const char* scout_ipv6address_rh1(const char *c)
+{
+	if ((c = scout_h16(c)) == NULL) return NULL;
+	if (*(c + 1) == ':') return scout_ls32(c + 2);
+	return NULL;
+}
+
+/*
+ * N( h16 ":" ) ls32
+ */
+#define SCOUT_IPV6ADDRESS_RH(N,M) static inline const char* scout_ipv6address_rh##N (const char *c) { \
+	if ((c = scout_h16(c)) == NULL) return NULL;                                                  \
+	if (*(c + 1) == ':') return scout_ipv6address_rh##M (c + 2);                                  \
+	return NULL;                                                                                  \
+}
+
+SCOUT_IPV6ADDRESS_RH(2,1)
+SCOUT_IPV6ADDRESS_RH(3,2)
+SCOUT_IPV6ADDRESS_RH(4,3)
+SCOUT_IPV6ADDRESS_RH(5,4)
+SCOUT_IPV6ADDRESS_RH(6,5)
+
+/*
+ * IPv6address =                            6( h16 ":" ) ls32
+ *             /                       "::" 5( h16 ":" ) ls32
+ *             / [               h16 ] "::" 4( h16 ":" ) ls32
+ *             / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+ *             / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+ *             / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+ *             / [ *4( h16 ":" ) h16 ] "::"              ls32
+ *             / [ *5( h16 ":" ) h16 ] "::"              h16
+ *             / [ *6( h16 ":" ) h16 ] "::"
+ */
+static inline const char* scout_ipv6address(const char *c)
+{
+	const char *p = NULL;
+	int left_hand_count = 0;
+
+	if ((p = scout_ipv6address_rh6(c)) != NULL) return p;
+	else {
+		p = c;
+		c = scout_h16(c);
+		while (c != NULL)
+		{
+			p = c++;
+			left_hand_count++;
+			if (*c == ':') c = scout_h16(c + 1);
+		}
+
+		p += (left_hand_count == 0) ? 2 : 3;
+
+		switch (left_hand_count)
+		{
+		case 0: if ((c = scout_ipv6address_rh5(p)) != NULL) return c;
+		case 1: if ((c = scout_ipv6address_rh4(p)) != NULL) return c;
+		case 2: if ((c = scout_ipv6address_rh3(p)) != NULL) return c;
+		case 3: if ((c = scout_ipv6address_rh2(p)) != NULL) return c;
+		case 4: if ((c = scout_ipv6address_rh1(p)) != NULL) return c;
+		case 5: if ((c = scout_ls32(p)) != NULL) return c;
+		case 6: if ((c = scout_h16(p)) != NULL) return c;
+		case 7: return p;
+		default: return NULL;
+		}
+	}
+}
+
+/*
+ * IPvFuture = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+ */
+static inline const char* scout_ipvfuture(const char *c)
+{
+	if (*c == 'v') {
+		while (ascii_flags[(unsigned char)*c] & HEXIDECIMAL)
+			c++;
+
+		if (*c == '.') {
+			while ((ascii_flags[(unsigned char)*c] & (UNRESERVED | SUB_DELIM)) || *c == ':')
+				c++;
+
+			return c;
+		}
+	}
+
+	return NULL;
+}
+
+/*
+ * IP-literal = '[' ( IPv6address / IPvFuture ) ']'
+ */
+static inline const char* scout_ip_literal(const char *c)
+{
+	if (*c == '[') {
+		const char *p = scout_ipv6address(c + 1);
+		if (p != NULL && *(p + 1) == ']') return p + 1;
+		else if ((p = scout_ipvfuture(c + 1)) != NULL && *(p + 1) == ']') return p + 1;
+		else return NULL;
+	}
+
+	return NULL;
+}
 
 /*
  * pct-encoded = "%" HEXDIG HEXDIG
@@ -266,10 +467,17 @@ static inline const char* scout_userinfo(const char *c)
 
 /*
  * host = IP-literal / IPv4address / reg-name
- *
- * TODO: implement this fully
  */
-#define scout_host scout_reg_name
+static inline const char* scout_host(const char *c)
+{
+	const char *p = scout_reg_name(c);
+	if (p == NULL) {
+		if ((p = scout_ipv4address(c)) == NULL)
+			return scout_ip_literal(c);
+	}
+
+	return p;
+}
 
 /*
  * port = *DIGIT
@@ -286,11 +494,19 @@ static inline const char* scout_port(const char *c)
 	return p;
 }
 
+/*
+ * scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+ */
 static inline const char* scout_scheme(const char *c)
 {
-	const char *p = ((ascii_flags[(unsigned char)*c] & ALPHA) ? c++ : NULL);
+	const char *p;
 
-	while (p != NULL)
+	if (ascii_flags[(unsigned char)*c] & ALPHA)
+		p = c++;
+	else
+		return NULL;
+
+	while (c != NULL)
 	{
 		switch (*c)
 		{
@@ -428,7 +644,7 @@ proceed_path_abempty:
 		}
 		else {
 			*end = *start;
-			return URI_HAS_PATH;
+			return URI_HAS_EMPTY_PATH;
 		}
 
 	case URI_HAS_PATH:
