@@ -106,24 +106,31 @@ static inline const char* scout_scheme(const char*) __pure;
  */
 static inline const char* scout_dec_octet(const char *c)
 {
-	if (ascii_flags[(unsigned char)*c] & DIGIT) {
-		if (*c == '2') {
-			if ((*(c + 1) - '0') <= ('5' - '0')) {
-				if ((*(c + 1) == '5') && ((*(c + 2) - '0') <= ('5' - '0'))) return c + 2;
-				else if (ascii_flags[(unsigned char)*(c + 2)] & DIGIT) return c + 2;
-				else return NULL; 
-			}
-			else return NULL;
+	switch (*c)
+	{
+	case '1':
+
+		if ((ascii_flags[(unsigned char)*(c + 1)] & DIGIT) && (ascii_flags[(unsigned char)*(c + 2)] & DIGIT)) return c + 2;
+		else if (ascii_flags[(unsigned char)*(c + 1)] & DIGIT) return c + 1;
+		else return NULL;
+
+	case '2':
+
+		if ((*(c + 1) - '0') <= ('5' - '0')) {
+			if ((*(c + 1) == '5') && ((*(c + 2) - '0') <= ('5' - '0'))) return c + 2;
+			else if (ascii_flags[(unsigned char)*(c + 2)] & DIGIT) return c + 2;
+			else return NULL; 
 		}
-		else if (*c == '1') {
-			if ((ascii_flags[(unsigned char)*(c + 1)] & DIGIT) && (ascii_flags[(unsigned char)*(c + 2)] & DIGIT)) return c + 2;
-			else if (ascii_flags[(unsigned char)*(c + 1)] & DIGIT) return c + 1;
-			else return NULL;
+		else return NULL;
+
+	default:
+
+		if (ascii_flags[(unsigned char)*c] & DIGIT) {
+			if (((*c - '3') <= ('9' - '3')) && (ascii_flags[(unsigned char)*(c + 1)] & DIGIT)) return c + 1;
+			else return c;
 		}
-		else if (((*c - '3') <= ('9' - '3')) && (ascii_flags[(unsigned char)*(c + 1)] & DIGIT)) return c + 1;
-		else return c;
+		else return NULL;
 	}
-	else return NULL;
 }
 
 /*
