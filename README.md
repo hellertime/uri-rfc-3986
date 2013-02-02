@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/hellertime/uri-rfc-3986.png?branch=master)](https://travis-ci.org/hellertime/uri-rfc-3986)
+
 uri -- low overhead uri parsing routines
 ========================================
 
